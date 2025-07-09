@@ -1,66 +1,69 @@
 // app/login/page.tsx
-"use client"; // This component needs to run on the client-side
+"use client";
 
-import React, { useState } from "react"; // Import useState
-import Image from "next/image"; 
+import React, { useState, useEffect } from "react"; // Import useEffect
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Import useRouter
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation"; // Import useSearchParams
+import jwt from 'jsonwebtoken'; // For decoding the token to get user info
 
 export default function LoginPage() {
-  // State for email and password inputs
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  // State for displaying messages to the user (e.g., success, error)
-  const [message, setMessage] = useState(''); 
-  // New state to track if the message is a success message
-  const [isSuccess, setIsSuccess] = useState(false); 
+  const [message, setMessage] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
+  const searchParams = useSearchParams(); // Initialize useSearchParams
+
+  // Get the redirect URL from query parameters
+  const redirectUrl = searchParams.get('redirect');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setMessage(''); // Clear any previous messages
-    setIsSuccess(false); // Reset success status
+    setMessage('');
+    setIsSuccess(false);
 
     try {
-      // Send a POST request to your /api/login endpoint
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }), // Send email and password
+        body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json(); // Parse the JSON response
+      const data = await response.json();
 
       if (response.ok) {
-        // If login is successful (status 200)
-        setMessage(data.message || 'Login successful!'); // Display success message
-        setIsSuccess(true); // Set to true for green color
-        localStorage.setItem('authToken', data.token); // Store the token (important!)
-        router.push('/'); // Redirect to the homepage or a dashboard
+        setMessage(data.message || 'Login successful!');
+        setIsSuccess(true);
+        localStorage.setItem('authToken', data.token);
+
+        // Redirect to the URL specified in the 'redirect' query parameter,
+        // or to the homepage if no redirect parameter is present.
+        if (redirectUrl) {
+          router.push(decodeURIComponent(redirectUrl));
+        } else {
+          router.push('/'); // Default redirect if no specific path was requested
+        }
       } else {
-        // If login fails (e.g., status 401, 400, etc.)
-        setMessage(data.message || 'Login failed. Please check your credentials.'); // Display error message
-        setIsSuccess(false); // Set to false for red color (already default, but good for clarity)
+        setMessage(data.message || 'Login failed. Please check your credentials.');
+        setIsSuccess(false);
       }
     } catch (error) {
       console.error('Login error:', error);
       setMessage('An unexpected error occurred. Please try again.');
-      setIsSuccess(false); // Set to false for red color
+      setIsSuccess(false);
     }
   };
 
   return (
     <main className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
-      {/* The header with the logo and "InvestLink" text has been removed from here */}
-
       {/* Login Card */}
       <div className="bg-white text-gray-900 rounded-2xl shadow-2xl p-8 sm:p-12 w-full max-w-md">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-extrabold mb-2">Welcome Back</h1>
-          {/* Updated text for the paragraph below the title to remove "InvestLink" if desired */}
           <p className="text-gray-600">Sign in to your account</p>
         </div>
 
@@ -76,8 +79,8 @@ export default function LoginPage() {
               placeholder="Enter your email"
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
               required
-              value={email} // Controlled component
-              onChange={(e) => setEmail(e.target.value)} // Update state on change
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
@@ -92,8 +95,8 @@ export default function LoginPage() {
               placeholder="Enter your password"
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
               required
-              value={password} // Controlled component
-              onChange={(e) => setPassword(e.target.value)} // Update state on change
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
           </div>
 
@@ -121,7 +124,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Display messages - Now conditionally applies green or red text */}
+        {/* Display messages */}
         {message && (
           <p className={`text-center mt-4 text-sm font-medium ${isSuccess ? 'text-green-500' : 'text-red-500'}`}>
             {message}
