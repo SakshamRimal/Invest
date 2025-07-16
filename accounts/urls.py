@@ -8,10 +8,11 @@ from .views import (
     InvestorDashboardView,
     StartupDashboardView,
     home,
+    CustomTokenObtainPairView,
 )
 
 urlpatterns = [
-    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('protected/', protected_view, name='protected'),
     path('admin-only/', AdminOnlyView.as_view(), name='admin_only'),

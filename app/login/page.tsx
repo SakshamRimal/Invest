@@ -25,12 +25,12 @@ export default function LoginPage() {
     setIsSuccess(false);
 
     try {
-      const response = await fetch('/api/login', {
+      const response = await fetch('http://localhost:8000/api/accounts/login/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username: email, password }),
       });
 
       const data = await response.json();
@@ -38,8 +38,9 @@ export default function LoginPage() {
       if (response.ok) {
         setMessage(data.message || 'Login successful!');
         setIsSuccess(true);
-        localStorage.setItem('authToken', data.token);
-
+        if (data.access) {
+          localStorage.setItem('authToken', data.access);
+        }
         // Redirect to the URL specified in the 'redirect' query parameter,
         // or to the homepage if no redirect parameter is present.
         if (redirectUrl) {
@@ -48,7 +49,7 @@ export default function LoginPage() {
           router.push('/'); // Default redirect if no specific path was requested
         }
       } else {
-        setMessage(data.message || 'Login failed. Please check your credentials.');
+        setMessage(data.detail || data.message || 'Login failed. Please check your credentials.');
         setIsSuccess(false);
       }
     } catch (error) {

@@ -1,15 +1,32 @@
 // app/page.tsx
 "use client";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from 'next/navigation'; // Import useRouter
+import {
+  FaHandHoldingDollar,
+  FaTag, // <-- use FaTag if you want a tag icon
+  FaUsers,
+  FaEye,
+} from 'react-icons/fa6';
 
 export default function Home() {
   const router = useRouter(); // Initialize useRouter
 
   // State for mobile menu visibility
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // State for Django API response
+  const [djangoMessage, setDjangoMessage] = useState('');
+
+  // Fetch Django API on mount
+  useEffect(() => {
+    fetch('http://localhost:8000/api/accounts/')
+      .then(res => res.text())
+      .then(data => setDjangoMessage(data))
+      .catch(() => setDjangoMessage('Could not connect to Django backend.'));
+  }, []);
 
   // Function to toggle mobile menu
   const toggleMenu = () => {
@@ -30,6 +47,10 @@ export default function Home() {
 
   return (
     <main className="bg-white text-gray-700 overflow-x-hidden">
+      {/* Django API message */}
+      <div className="bg-yellow-100 text-yellow-800 p-2 text-center">
+        Django says: {djangoMessage}
+      </div>
       {/* Header Section */}
       <header className="bg-white shadow-sm py-4 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto flex justify-between items-center">

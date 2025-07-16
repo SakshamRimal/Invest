@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import jwt from 'jsonwebtoken'; // Import jsonwebtoken for decoding
+import { useRouter } from 'next/navigation';
 
 // Import icons from react-icons
 import {
@@ -18,15 +19,19 @@ import {
 
 import {
   FaHandHoldingDollar,
-  FaTarget,
+  FaTag,
   FaUsers,
   FaEye,
 } from 'react-icons/fa6';
+
+import ConfirmLogoutModal from '../../components/ConfirmLogoutModal';
 
 
 export default function StartupDashboardPage() {
   const [activeLink, setActiveLink] = useState('Dashboard');
   const [userName, setUserName] = useState('User'); // State for user's name
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     // Client-side code to get and decode token
@@ -36,8 +41,8 @@ export default function StartupDashboardPage() {
         try {
           // Decode the token (replace 'your_jwt_secret' with your actual secret)
           const decodedToken: any = jwt.decode(token);
-          if (decodedToken && decodedToken.name) {
-            setUserName(decodedToken.name);
+          if (decodedToken && decodedToken.username) {
+            setUserName(decodedToken.username);
           }
         } catch (error) {
           console.error("Error decoding token:", error);
@@ -47,15 +52,24 @@ export default function StartupDashboardPage() {
     }
   }, []); // Run once on component mount
 
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    router.push('/');
+  };
+
+  const displayName = userName.includes('@') ? userName.split('@')[0] : userName;
+
   const renderContent = () => {
     switch (activeLink) {
       case 'Dashboard':
         return (
           <>
             <header className="flex justify-between items-center mb-8">
-              <div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-1">Welcome back, {userName}!</h1> {/* Dynamic name */}
-                <p className="text-gray-600">Here's your startup overview</p>
+              <div className="flex items-center">
+                <span className="bg-blue-50 text-blue-800 px-4 py-1 rounded-full text-sm font-medium mr-4">
+                  Welcome, {displayName}!
+                </span>
+                <p className="text-gray-600 ml-2">Here's your startup overview</p>
               </div>
               <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full flex items-center shadow-lg transition-all">
                 <MdPeopleOutline className="mr-2 text-xl" />
@@ -80,7 +94,7 @@ export default function StartupDashboardPage() {
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="flex items-center mb-2">
                   <div className="bg-blue-100 rounded-lg p-3 mr-3">
-                    <FaTarget className="text-blue-600 text-3xl" />
+                    <FaTag className="text-blue-600 text-3xl" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-700">Funding Goal</h3>
@@ -137,17 +151,17 @@ export default function StartupDashboardPage() {
 
       // Add cases for other sidebar links (Investors, Funding, Pitch Deck, Messages, Profile, Settings)
       case 'Investors':
-        return <div className="text-gray-700 text-center py-20">Investors content goes here.</div>;
+        return <div className="py-8 px-4 text-gray-700 text-center">Investors content goes here.</div>;
       case 'Funding':
-        return <div className="text-gray-700 text-center py-20">Funding content goes here.</div>;
+        return <div className="py-8 px-4 text-gray-700 text-center">Funding content goes here.</div>;
       case 'Pitch Deck':
-        return <div className="text-gray-700 text-center py-20">Pitch Deck content goes here.</div>;
+        return <div className="py-8 px-4 text-gray-700 text-center">Pitch Deck content goes here.</div>;
       case 'Messages':
-        return <div className="text-gray-700 text-center py-20">Messages content goes here.</div>;
+        return <div className="py-8 px-4 text-gray-700 text-center">Messages content goes here.</div>;
       case 'Profile':
-        return <div className="text-gray-700 text-center py-20">Profile content goes here.</div>;
+        return <div className="py-8 px-4 text-gray-700 text-center">Profile content goes here.</div>;
       case 'Settings':
-        return <div className="text-gray-700 text-center py-20">Settings content goes here.</div>;
+        return <div className="py-8 px-4 text-gray-700 text-center">Settings content goes here.</div>;
       default:
         return null;
     }
@@ -212,17 +226,25 @@ export default function StartupDashboardPage() {
               </a>
             </li>
             <li className="hover:bg-gray-700 rounded-lg">
-              <a href="#" className="flex items-center p-3 text-red-400">
+              <button onClick={() => setShowLogoutModal(true)} className="flex items-center p-3 text-red-400 w-full text-left">
                 <MdOutlineExitToApp className="mr-3 text-2xl" />
                 Logout
-              </a>
+              </button>
             </li>
           </ul>
         </div>
       </aside>
 
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto relative">
         {renderContent()}
+        <ConfirmLogoutModal
+          open={showLogoutModal}
+          onClose={() => setShowLogoutModal(false)}
+          onConfirm={() => {
+            setShowLogoutModal(false);
+            handleLogout();
+          }}
+        />
       </main>
     </div>
   );

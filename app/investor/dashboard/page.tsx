@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react'; // Import useRef for chart canvas references
 import Chart from 'chart.js/auto'; // Import Chart.js
 import jwt from 'jsonwebtoken'; // Import jsonwebtoken for decoding
+import { useRouter } from 'next/navigation';
 
 // Import icons from react-icons
 import {
@@ -27,6 +28,7 @@ import {
 import InvestmentCard from '../../components/InvestmentCard';
 import OpportunityCard from '../../components/OpportunityCard';
 import MessageCard from '../../components/MessageCard'; // Import the new MessageCard component
+import ConfirmLogoutModal from '../../components/ConfirmLogoutModal';
 
 // Mock Data for Investment Portfolio (replace with real data later)
 const mockInvestments = [
@@ -255,6 +257,7 @@ export default function InvestorDashboardPage() {
   const [activeLink, setActiveLink] = useState('Dashboard');
   const [userName, setUserName] = useState('User'); // State for user's name
   const [selectedMessage, setSelectedMessage] = useState<typeof mockMessages[0] | null>(null); // State for selected message detail
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Mock profile data (replace with real data from authentication/backend)
   const [profileData, setProfileData] = useState({
@@ -275,6 +278,8 @@ export default function InvestorDashboardPage() {
   const performanceChartInstance = useRef<Chart | null>(null);
   const allocationChartInstance = useRef<Chart | null>(null);
 
+  const router = useRouter();
+
   useEffect(() => {
     // Client-side code to get and decode token
     if (typeof window !== 'undefined') {
@@ -283,8 +288,8 @@ export default function InvestorDashboardPage() {
         try {
           // Decode the token (replace 'your_jwt_secret' with your actual secret)
           const decodedToken: any = jwt.decode(token);
-          if (decodedToken && decodedToken.name) {
-            setUserName(decodedToken.name);
+          if (decodedToken && decodedToken.username) {
+            setUserName(decodedToken.username);
             // Optionally update profile data from token if available
             setProfileData(prev => ({
                 ...prev,
@@ -458,6 +463,11 @@ export default function InvestorDashboardPage() {
     // You might want to show a success message or redirect
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    router.push('/');
+  };
+
 
   const renderContent = () => {
     switch (activeLink) {
@@ -465,12 +475,14 @@ export default function InvestorDashboardPage() {
         return (
           <>
             <header className="flex justify-between items-center mb-8">
-              <div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-1">Welcome back, {userName}!</h1>
-                <p className="text-gray-600">Here's your investment portfolio overview</p>
+              <div className="flex items-center">
+                <span className="bg-blue-50 text-blue-800 px-4 py-1 rounded-full text-sm font-medium mr-4">
+                  Welcome, {displayName}!
+                </span>
+                <p className="text-gray-600 ml-2">Here's your investment portfolio overview</p>
               </div>
               <button
-                onClick={() => setActiveLink('Opportunities')} // Added onClick to set activeLink
+                onClick={() => setActiveLink('Opportunities')}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full flex items-center shadow-lg transition-all"
               >
                 <MdLightbulbOutline className="mr-2 text-xl" />
@@ -781,6 +793,8 @@ export default function InvestorDashboardPage() {
     }
   };
 
+  // Only use the part before @ if username looks like an email
+  const displayName = userName.includes('@') ? userName.split('@')[0] : userName;
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
@@ -834,17 +848,25 @@ export default function InvestorDashboardPage() {
               </a>
             </li>
             <li className="hover:bg-gray-700 rounded-lg">
-              <a href="#" className="flex items-center p-3 text-red-400">
+              <button onClick={() => setShowLogoutModal(true)} className="flex items-center p-3 text-red-400 w-full text-left">
                 <MdOutlineExitToApp className="mr-3 text-2xl" />
                 Logout
-              </a>
+              </button>
             </li>
           </ul>
         </div>
       </aside>
 
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto relative">
         {renderContent()}
+        <ConfirmLogoutModal
+          open={showLogoutModal}
+          onClose={() => setShowLogoutModal(false)}
+          onConfirm={() => {
+            setShowLogoutModal(false);
+            handleLogout();
+          }}
+        />
       </main>
     </div>
   );

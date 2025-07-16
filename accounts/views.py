@@ -5,6 +5,8 @@ from rest_framework.decorators import api_view, permission_classes
 from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password
 from rest_framework import status
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import User
 from .permissions import IsAdmin, IsInvestor, IsStartup  # You’ll need to define IsInvestor & IsStartup in permissions.py
@@ -66,3 +68,21 @@ class StartupDashboardView(APIView):
 
     def get(self, request):
         return Response({'dashboard': 'Welcome, Startup!'})
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Add custom claims
+        token['role'] = user.role
+        token['username'] = user.username
+        return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data['role'] = self.user.role
+        data['username'] = self.user.username
+        return data
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer

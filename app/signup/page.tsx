@@ -42,29 +42,19 @@ export default function SignupPage() {
     e.preventDefault();
     setMessage(''); // Clear previous messages
 
-    // Construct the data to send based on signupType
-    const dataToSend: { [key: string]: any } = {
-      email: formData.email,
+    // Use email as username for backend
+    const dataToSend = {
+      username: formData.email,
       password: formData.password,
-      signupType: signupType, // Crucial for backend to differentiate
     };
 
-    if (signupType === "investor") {
-      dataToSend.firstName = formData.firstName;
-      dataToSend.lastName = formData.lastName;
-      dataToSend.investmentFirm = formData.investmentFirm;
-      dataToSend.investmentRange = formData.investmentRange;
-      dataToSend.preferredSectors = formData.preferredSectors;
-    } else { // startup
-      dataToSend.founderName = formData.founderName;
-      dataToSend.startupName = formData.startupName;
-      dataToSend.industrySector = formData.industrySector;
-      dataToSend.fundingStage = formData.fundingStage;
-      dataToSend.companyDescription = formData.companyDescription;
-    }
+    // Choose endpoint based on signupType
+    const endpoint = signupType === 'investor'
+      ? 'http://localhost:8000/api/accounts/register/investor/'
+      : 'http://localhost:8000/api/accounts/register/startup/';
 
     try {
-      const response = await fetch('/api/signup', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +66,7 @@ export default function SignupPage() {
 
       if (response.ok) {
         setMessage(responseData.message || 'Signup successful! Redirecting to login...');
-        router.push('/login'); // Redirect to login page
+        setTimeout(() => router.push('/login'), 1500); // Redirect after short delay
       } else {
         setMessage(responseData.message || 'Signup failed.');
       }
