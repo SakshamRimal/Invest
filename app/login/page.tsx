@@ -1,20 +1,23 @@
 // app/login/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react"; // Import useEffect
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation"; // Import useSearchParams
-import jwt from 'jsonwebtoken'; // For decoding the token to get user info
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "../contexts/AuthContext";
+import Logo from "../components/Logo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
-  const searchParams = useSearchParams(); // Initialize useSearchParams
+  const searchParams = useSearchParams();
+  const { login, isAuthenticated, user } = useAuth();
 
   // Get the redirect URL from query parameters
   const redirectUrl = searchParams.get('redirect');
@@ -23,44 +26,49 @@ export default function LoginPage() {
     e.preventDefault();
     setMessage('');
     setIsSuccess(false);
+    setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/accounts/login/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username: email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage(data.message || 'Login successful!');
+      const success = await login(email, password);
+      
+      if (success) {
+        setMessage('Login successful!');
         setIsSuccess(true);
-        if (data.access) {
-          localStorage.setItem('authToken', data.access);
-        }
-        // Redirect to the URL specified in the 'redirect' query parameter,
-        // or to the homepage if no redirect parameter is present.
+        
+        // Redirect based on user role
         if (redirectUrl) {
+          // If there's a specific redirect URL, use it
           router.push(decodeURIComponent(redirectUrl));
         } else {
-          router.push('/'); // Default redirect if no specific path was requested
+          // Auto-redirect based on role
+          if (user?.role === 'investor') {
+            router.push('/investor/dashboard');
+          } else if (user?.role === 'startup') {
+            router.push('/startup/dashboard');
+          } else {
+            router.push('/');
+          }
         }
       } else {
-        setMessage(data.detail || data.message || 'Login failed. Please check your credentials.');
+        setMessage('Login failed. Please check your credentials.');
         setIsSuccess(false);
       }
     } catch (error) {
       console.error('Login error:', error);
       setMessage('An unexpected error occurred. Please try again.');
       setIsSuccess(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <main className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
+      {/* Logo at the top */}
+      <div className="mb-8">
+        <Logo size="lg" />
+      </div>
+      
       {/* Login Card */}
       <div className="bg-white text-gray-900 rounded-2xl shadow-2xl p-8 sm:p-12 w-full max-w-md">
         <div className="text-center mb-10">

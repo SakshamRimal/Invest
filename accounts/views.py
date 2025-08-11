@@ -39,22 +39,52 @@ class AdminOnlyView(APIView):
 class InvestorRegisterView(APIView):
     def post(self, request):
         data = request.data
-        user = User.objects.create(
-            username=data['username'],
-            password=make_password(data['password']),
-            role='investor'
-        )
-        return Response({'message': 'Investor registered successfully'}, status=status.HTTP_201_CREATED)
+        try:
+            user = User.objects.create(
+                username=data['username'],
+                password=make_password(data['password']),
+                role='investor',
+                first_name=data.get('firstName', ''),
+                last_name=data.get('lastName', ''),
+                email=data.get('email', ''),
+                investment_firm=data.get('investmentFirm', ''),
+                investment_range=data.get('investmentRange', ''),
+                preferred_sectors=data.get('preferredSectors', ''),
+                phone=data.get('phone', '')
+            )
+            return Response({
+                'message': 'Investor registered successfully',
+                'user_id': user.id
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({
+                'message': f'Registration failed: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 class StartupRegisterView(APIView):
     def post(self, request):
         data = request.data
-        user = User.objects.create(
-            username=data['username'],
-            password=make_password(data['password']),
-            role='startup'
-        )
-        return Response({'message': 'Startup registered successfully'}, status=status.HTTP_201_CREATED)
+        try:
+            user = User.objects.create(
+                username=data['username'],
+                password=make_password(data['password']),
+                role='startup',
+                email=data.get('email', ''),
+                founder_name=data.get('founderName', ''),
+                startup_name=data.get('startupName', ''),
+                industry_sector=data.get('industrySector', ''),
+                funding_stage=data.get('fundingStage', ''),
+                company_description=data.get('companyDescription', ''),
+                phone=data.get('phone', '')
+            )
+            return Response({
+                'message': 'Startup registered successfully',
+                'user_id': user.id
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({
+                'message': f'Registration failed: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 # ========== Dashboard Views ==========
 class InvestorDashboardView(APIView):

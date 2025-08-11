@@ -1,10 +1,11 @@
 // app/investor/dashboard/page.tsx
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react'; // Import useRef for chart canvas references
-import Chart from 'chart.js/auto'; // Import Chart.js
-import jwt from 'jsonwebtoken'; // Import jsonwebtoken for decoding
+import React, { useState, useEffect, useRef } from 'react';
+import Chart from 'chart.js/auto';
+import { getUserRole } from '../../utils/auth';
 import { useRouter } from 'next/navigation';
+import Logo from '../../components/Logo';
 
 // Import icons from react-icons
 import {
@@ -286,8 +287,9 @@ export default function InvestorDashboardPage() {
       const token = localStorage.getItem('authToken');
       if (token) {
         try {
-          // Decode the token (replace 'your_jwt_secret' with your actual secret)
-          const decodedToken: any = jwt.decode(token);
+          // Use the utility function to decode token
+          const { decodeJWTToken } = require('../../utils/auth');
+          const decodedToken = decodeJWTToken(token);
           if (decodedToken && decodedToken.username) {
             setUserName(decodedToken.username);
             // Optionally update profile data from token if available
@@ -800,7 +802,7 @@ export default function InvestorDashboardPage() {
       {/* Sidebar */}
       <aside className="w-64 bg-gray-800 text-white flex flex-col p-4 shadow-lg">
         <div className="mb-8">
-          <span className="text-xl font-bold">InvestLink</span>
+          <Logo size="md" className="text-white" />
           <p className="text-sm text-gray-400 mt-1">Investor Portal</p>
         </div>
 

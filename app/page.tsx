@@ -1,26 +1,25 @@
-// app/page.tsx
 "use client";
 import { useEffect, useState } from 'react';
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Logo from '@/components/Logo';
 import {
-  FaHandHoldingDollar,
-  FaTag, // <-- use FaTag if you want a tag icon
+  FaGlobe,
+  FaFilter,
+  FaHandHolding,
   FaUsers,
-  FaEye,
-} from 'react-icons/fa6';
+  FaHandshake,
+  FaChartLine,
+  FaShieldAlt,
+  FaCrosshairs
+} from 'react-icons/fa';
+import { FaHandHoldingDollar } from 'react-icons/fa6';
 
 export default function Home() {
-  const router = useRouter(); // Initialize useRouter
-
-  // State for mobile menu visibility
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // State for Django API response
   const [djangoMessage, setDjangoMessage] = useState('');
 
-  // Fetch Django API on mount
   useEffect(() => {
     fetch('http://localhost:8000/api/accounts/')
       .then(res => res.text())
@@ -28,345 +27,471 @@ export default function Home() {
       .catch(() => setDjangoMessage('Could not connect to Django backend.'));
   }, []);
 
-  // Function to toggle mobile menu
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  // Function to handle redirection to login with a specific dashboard target
   const handlePortalEntry = (portalType: 'investor' | 'startup') => {
-    let redirectPath = '';
-    if (portalType === 'investor') {
-      redirectPath = '/investor/dashboard';
-    } else {
-      redirectPath = '/startup/dashboard';
-    }
-    // Always redirect to login, passing the intended dashboard path as a query parameter
+    const redirectPath = portalType === 'investor' 
+      ? '/investor/dashboard' 
+      : '/startup/dashboard';
     router.push(`/login?redirect=${encodeURIComponent(redirectPath)}`);
   };
 
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+    setIsMenuOpen(false);
+  };
+
   return (
-    <main className="bg-white text-gray-700 overflow-x-hidden">
+    <main className="bg-white text-gray-800 min-h-screen">
       {/* Django API message */}
-      <div className="bg-yellow-100 text-yellow-800 p-2 text-center">
-        Django says: {djangoMessage}
-      </div>
+      {djangoMessage && (
+        <div className="bg-blue-50 text-blue-800 p-2 text-center text-sm font-medium">
+          Backend status: {djangoMessage}
+        </div>
+      )}
+
       {/* Header Section */}
-      <header className="bg-white shadow-sm py-4 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto flex justify-between items-center">
-          {/* Left side: Logo and Text with corrected alignment */}
-          <div className="flex items-center">
-            {/* Logo container with controlled size */}
-            <div className="relative w-16 h-16 flex-shrink-0 mr-2 rounded-[8px] overflow-hidden">
-              <Image
-                src="/invest link.png" // Corrected image path: use hyphen instead of space
-                alt="InvestLink Logo"
-                fill // Image fills its parent container
-                className="object-contain" // Maintains aspect ratio
-                priority // Preload for better performance
-                sizes="64px" // Since the parent div is w-16 h-16, which is usually 64px by 64px in Tailwind's default config.
-              />
-            </div>
-            {/* Text with vertical nudge for perfect alignment */}
-            <span className="text-black font-poppins text-2xl font-bold -translate-y-0.5">
-              InvestLink
-            </span>
-          </div>
-
-          {/* Center: Main navigation links (desktop only) */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <a href="#features" className="text-gray-600 hover:text-blue-500 font-semibold transition-colors">
-              Features
-            </a>
-            <a href="#how-it-works" className="text-gray-600 hover:text-blue-500 font-semibold transition-colors">
-              How It Works
-            </a>
-            <a href="#about" className="text-gray-600 hover:text-blue-500 font-semibold transition-colors">
-              About Us
-            </a>
+      <header className="bg-white border-b border-gray-100 py-4 px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <Logo size="lg" className="text-blue-600" />
+          <nav className="hidden md:flex items-center space-x-8">
+            {['features', 'how-it-works', 'about-us'].map((item) => {
+              const label = item.split('-').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+              ).join(' ');
+              return (
+                <button
+                  key={item}
+                  onClick={() => scrollToSection(item)}
+                  className="text-gray-600 hover:text-blue-600 font-medium transition-colors text-sm uppercase tracking-wider hover:underline underline-offset-4 decoration-2"
+                >
+                  {label}
+                </button>
+              );
+            })}
           </nav>
-
-          {/* Right side: Login/Signup buttons (desktop only) with consistent height */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Link href="/login" className="flex items-center justify-center h-10 bg-blue-500 hover:bg-blue-600 text-white px-6 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all">
-              Login
-            </Link>
-            <Link href="/signup" className="flex items-center justify-center h-10 bg-blue-500 hover:bg-blue-600 text-white px-6 rounded-lg font-semibold shadow-md transition-all">
-              Sign Up
-            </Link>
+          <div className="hidden md:flex items-center space-x-3">
+            <button
+              onClick={() => handlePortalEntry('investor')}
+              className="h-10 bg-blue-600 hover:bg-blue-700 text-white px-5 rounded-md font-medium text-sm shadow-sm transition-all hover:shadow-md"
+            >
+              Investor Login
+            </button>
+            <button
+              onClick={() => handlePortalEntry('startup')}
+              className="h-10 bg-white border border-blue-600 text-blue-600 hover:bg-blue-50 px-5 rounded-md font-medium text-sm shadow-sm transition-all hover:shadow-md"
+            >
+              Startup Login
+            </button>
           </div>
-
-          {/* Mobile menu button (hidden on desktop) */}
-          <button onClick={toggleMenu} className="md:hidden text-gray-600 text-2xl">
-            ☰
+          <button 
+            onClick={toggleMenu}
+            className="md:hidden text-gray-600 text-2xl focus:outline-none hover:text-blue-600 transition-colors"
+            aria-label="Toggle menu"
+            aria-expanded={isMenuOpen}
+          >
+            {isMenuOpen ? '✕' : '☰'}
           </button>
         </div>
       </header>
 
-      {/* MOBILE MENU OVERLAY - This appears when the ☰ button is clicked */}
-      <div className={`fixed top-0 left-0 w-full h-full bg-white transition-transform duration-300 ease-in-out z-50 md:hidden p-8 ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex justify-end">
-          {/* Close button for the mobile menu */}
-          <button onClick={toggleMenu} className="text-gray-600 text-4xl">&times;</button>
+      {/* Mobile Menu */}
+      <div 
+        className={`fixed inset-0 bg-white z-50 p-8 md:hidden transition-all duration-300 ${
+          isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+        }`}
+        style={{ backdropFilter: isMenuOpen ? 'blur(4px)' : 'none' }}
+      >
+        <div className="flex justify-between items-center mb-12">
+          <Logo size="md" className="text-blue-600" />
+          <button 
+            onClick={toggleMenu}
+            className="text-gray-600 text-3xl focus:outline-none hover:text-blue-600 transition-colors"
+            aria-label="Close menu"
+          >
+            &times;
+          </button>
         </div>
-        <nav className="flex flex-col items-center space-y-6 mt-16 text-xl">
-          {/* Links within the mobile menu, also close the menu on click */}
-          <a href="#features" onClick={toggleMenu} className="text-gray-900 hover:text-blue-500 font-medium">Features</a>
-          <a href="#how-it-works" onClick={toggleMenu} className="text-gray-900 hover:text-blue-500 font-medium">How It Works</a>
-          <a href="#about" onClick={toggleMenu} className="text-gray-900 hover:text-blue-500 font-medium">About Us</a>
-          <Link href="/login" onClick={toggleMenu} className="w-full text-center bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold shadow-md transition-all">Login</Link>
-          <Link href="/signup" onClick={toggleMenu} className="w-full text-center bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold shadow-md transition-all">Sign Up</Link>
+        <nav className="flex flex-col space-y-6">
+          {['features', 'how-it-works', 'about-us'].map((item) => {
+            const label = item.split('-').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+            return (
+              <button
+                key={item}
+                onClick={() => scrollToSection(item)}
+                className="text-gray-900 hover:text-blue-600 font-medium text-xl py-2 border-b border-gray-100 transition-colors text-left"
+              >
+                {label}
+              </button>
+            );
+          })}
+          <div className="flex flex-col space-y-3 mt-8">
+            <button
+              onClick={() => {
+                toggleMenu();
+                handlePortalEntry('investor');
+              }}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium shadow-sm transition-all hover:shadow-md text-lg"
+            >
+              Investor Portal
+            </button>
+            <button
+              onClick={() => {
+                toggleMenu();
+                handlePortalEntry('startup');
+              }}
+              className="w-full py-3 bg-white border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-md font-medium shadow-sm transition-all hover:shadow-md text-lg"
+            >
+              Startup Portal
+            </button>
+          </div>
         </nav>
       </div>
-      {/* END MOBILE MENU OVERLAY */}
 
       {/* Hero Section */}
-      <section className="bg-white py-20 px-4 sm:px-6 lg:px-8 text-center">
-        <div className="container mx-auto max-w-4xl">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
-            Where <span className="text-blue-500">Investors</span> and{" "}
-            <span className="text-blue-500">Startups</span> Connect
+      <section className="relative bg-gradient-to-br from-blue-50 to-white py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-gray-900 leading-tight mb-6">
+            <span className="text-blue-600">Investors</span> Meet <span className="text-blue-600">Startups</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-            Join the premier platform connecting innovative startups with visionary investors.
-            Build meaningful partnerships and fuel the next generation of breakthrough companies.
+          <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+            The premier platform connecting visionary investors with innovative startups.
+            Fuel the next generation of breakthrough companies.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
-            {/* Investor Portal Button - Now uses onClick to handle logic */}
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button
               onClick={() => handlePortalEntry('investor')}
-              className="bg-blue-500 hover:bg-blue-600 text-white py-4 px-10 rounded-full text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
+              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all text-lg"
             >
-              Enter Investor Portal
+              Investor Portal
             </button>
-
-            {/* Startup Portal Button - Now uses onClick to handle logic */}
             <button
               onClick={() => handlePortalEntry('startup')}
-              className="bg-blue-500 hover:bg-blue-600 text-white py-4 px-10 rounded-full text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
+              className="px-8 py-4 bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all text-lg"
             >
-              Enter Startup Portal
+              Startup Portal
             </button>
           </div>
         </div>
       </section>
 
-      {/* Homepage Section: Global Network, Smart Matching, Precise Targeting */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 text-center">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div className="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center">
-              <span className="text-5xl text-blue-500 mb-4">👥</span>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                Global Network
-              </h3>
-              <p className="text-gray-600">
-                Connect with investors and startups from around the world.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center">
-              <span className="text-5xl text-blue-500 mb-4">💡</span>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                Smart Matching
-              </h3>
-              <p className="text-gray-600">
-                AI-powered recommendations based on your preferences.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center">
-              <span className="text-5xl text-blue-500 mb-4">🎯</span>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                Precise Targeting
-              </h3>
-              <p className="text-gray-600">
-                Find exactly what you're looking for with advanced filters.
-              </p>
-            </div>
-          </div>
+      {/* Features Section */}
+      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+  <div className="max-w-7xl mx-auto">
+    <div className="text-center mb-16">
+      <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Core Features</h2>
+      <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+        Everything you need to build successful investment relationships
+      </p>
+    </div>
+    
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* Global Network Card */}
+      <div className="bg-white border border-gray-100 rounded-xl p-8 shadow-sm hover:shadow-md transition-all hover:border-blue-200 group relative overflow-hidden">
+        <div className="absolute -right-10 -top-10 text-blue-50 group-hover:text-blue-100 transition-colors z-0">
+          <FaGlobe className="w-32 h-32" />
         </div>
-      </section>
-
-      {/* "Why Choose InvestLink?" Section */}
-      <section id="features" className="py-16 px-4 sm:px-6 lg:px-8 text-center bg-white">
-        <div className="container mx-auto max-w-7xl">
-          <h2 className="text-5xl font-extrabold text-gray-900 leading-tight mb-4">
-            Why Choose InvestLink?
-          </h2>
-          <p className="text-xl text-gray-600 mb-16 max-w-3xl mx-auto">
-            Everything you need to build successful partnerships in the startup ecosystem.
+        <div className="relative z-10 flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <FaGlobe className="w-8 h-8 text-blue-600" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">Global Network</h3>
+          <p className="text-gray-600 mb-4">
+            Access investors and startups from around the world in one connected platform
           </p>
+          <Link 
+            href="/network" 
+            className="flex items-center text-blue-600 font-medium hover:text-blue-700 transition-colors"
+          >
+            Learn more
+            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+      
+      {/* Smart Matching Card */}
+      <div className="bg-white border border-gray-100 rounded-xl p-8 shadow-sm hover:shadow-md transition-all hover:border-blue-200 group relative overflow-hidden">
+        <div className="absolute -right-10 -top-10 text-blue-50 group-hover:text-blue-100 transition-colors z-0">
+          <FaChartLine className="w-32 h-32" />
+        </div>
+        <div className="relative z-10 flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <FaFilter className="w-8 h-8 text-blue-600" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">Smart Matching</h3>
+          <p className="text-gray-600 mb-4">
+            Our AI-powered algorithm finds the perfect matches for your investment criteria
+          </p>
+          <Link 
+            href="/matching" 
+            className="flex items-center text-blue-600 font-medium hover:text-blue-700 transition-colors"
+          >
+            Learn more
+            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+      
+      {/* Precise Targeting Card */}
+      <div className="bg-white border border-gray-100 rounded-xl p-8 shadow-sm hover:shadow-md transition-all hover:border-blue-200 group relative overflow-hidden">
+        <div className="absolute -right-10 -top-10 text-blue-50 group-hover:text-blue-100 transition-colors z-0">
+          <FaCrosshairs className="w-32 h-32" />
+        </div>
+        <div className="relative z-10 flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <FaHandHoldingDollar className="w-8 h-8 text-blue-600" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">Precise Targeting</h3>
+          <p className="text-gray-600 mb-4">
+            Pinpoint exactly the type of startups or investors you want to connect with
+          </p>
+          <Link 
+            href="/targeting" 
+            className="flex items-center text-blue-600 font-medium hover:text-blue-700 transition-colors"
+          >
+            Learn more
+            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-            <div className="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center transition-transform transform hover:scale-105 duration-300">
-              <div className="flex items-center justify-center w-20 h-20 bg-blue-50 text-blue-500 rounded-2xl mb-6">
-                <span className="text-5xl">✅</span>
+      {/* Stats Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { icon: <FaGlobe className="w-10 h-10 text-blue-600" />, value: "10K+", label: "Global Members" },
+              { icon: <FaHandshake className="w-10 h-10 text-blue-600" />, value: "2.5K+", label: "Successful Matches" },
+              { icon: <FaChartLine className="w-10 h-10 text-blue-600" />, value: "$500M+", label: "Capital Raised" },
+              { icon: <FaShieldAlt className="w-10 h-10 text-blue-600" />, value: "100%", label: "Verified Users" },
+            ].map((stat, index) => (
+              <div key={index} className="bg-white p-6 rounded-lg text-center shadow-sm hover:shadow-md transition-all">
+                <div className="mb-4 flex justify-center">
+                  {stat.icon}
+                </div>
+                <div className="text-4xl font-bold text-gray-900 mb-2">{stat.value}</div>
+                <div className="text-gray-600 text-lg font-medium">{stat.label}</div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                Verified Profiles
-              </h3>
-              <p className="text-gray-600">
-                All users are thoroughly vetted for authenticity and credibility.
-              </p>
-            </div>
-
-            <div className="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center transition-transform transform hover:scale-105 duration-300">
-              <div className="flex items-center justify-center w-20 h-20 bg-blue-50 text-blue-500 rounded-2xl mb-6">
-                <span className="text-5xl">🔗</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                Fast Connections
-              </h3>
-              <p className="text-gray-600">
-                Connect with potential partners in minutes, not months.
-              </p>
-            </div>
-
-            <div className="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center transition-transform transform hover:scale-105 duration-300">
-              <div className="flex items-center justify-center w-20 h-20 bg-blue-50 text-blue-500 rounded-2xl mb-6">
-                <span className="text-5xl">🔒</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                Secure Platform
-              </h3>
-              <p className="text-gray-600">
-                Enterprise-grade security protecting your sensitive information.
-              </p>
-            </div>
-
-            <div className="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center transition-transform transform hover:scale-105 duration-300">
-              <div className="flex items-center justify-center w-20 h-20 bg-blue-50 text-blue-500 rounded-2xl mb-6">
-                <span className="text-5xl">🌍</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                Global Reach
-              </h3>
-              <p className="text-gray-600">
-                Access opportunities from emerging markets to Silicon Valley.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* "How It Works" Section */}
-      <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8 text-center bg-gray-50">
-        <div className="container mx-auto max-w-6xl">
-          <h2 className="text-5xl font-extrabold text-gray-900 leading-tight mb-16">
-            How InvestLink Works
-          </h2>
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Simple steps to start your investment journey
+            </p>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div className="flex flex-col items-center p-6 bg-white rounded-2xl shadow-xl transition-transform transform hover:scale-105 duration-300">
-              <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-white text-blue-600 font-bold mb-8 ring-4 ring-blue-200">
-                <span className="text-5xl">1</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                step: "1",
+                title: "Create Profile",
+                description: "Set up your investor or startup profile with key details",
+                icon: <FaUsers className="w-12 h-12 text-blue-600" />
+              },
+              {
+                step: "2",
+                title: "Find Matches",
+                description: "Discover compatible investment opportunities or startups",
+                icon: <FaFilter className="w-12 h-12 text-blue-600" />
+              },
+              {
+                step: "3",
+                title: "Connect & Grow",
+                description: "Start conversations and build relationships",
+                icon: <FaHandHoldingDollar className="w-12 h-12 text-blue-600" />
+              }
+            ].map((item, index) => (
+              <div key={index} className="bg-white border border-gray-100 rounded-xl p-8 shadow-sm hover:shadow-md transition-all hover:border-blue-200">
+                <div className="flex items-center mb-6">
+                  <div className="w-14 h-14 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xl mr-4">
+                    {item.step}
+                  </div>
+                  {item.icon}
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">{item.title}</h3>
+                <p className="text-gray-600 text-lg">{item.description}</p>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Create Your Profile
-              </h3>
-              <p className="text-gray-600">
-                Set up your detailed profile showcasing your investment thesis or startup vision.
-              </p>
-            </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <div className="flex flex-col items-center p-6 bg-white rounded-2xl shadow-xl transition-transform transform hover:scale-105 duration-300">
-              <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-white text-blue-600 font-bold mb-8 ring-4 ring-blue-200">
-                <span className="text-5xl">2</span>
+      {/* Testimonials Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">What Our Users Say</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Success stories from our community
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                quote: "This platform helped me find the perfect investor for my AI startup. We secured $2M in funding!",
+                name: "Sarah Johnson",
+                role: "Founder, TechStart AI"
+              },
+              {
+                quote: "As an angel investor, I've discovered 3 promising startups here that are now in my portfolio.",
+                name: "Michael Chen",
+                role: "Angel Investor"
+              },
+              {
+                quote: "The matching algorithm is incredibly accurate. Saved me months of manual searching.",
+                name: "David Rodriguez",
+                role: "VC Partner"
+              }
+            ].map((testimonial, index) => (
+              <div key={index} className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-all">
+                <div className="text-gray-600 text-lg mb-6 italic">"{testimonial.quote}"</div>
+                <div className="border-t border-gray-100 pt-4">
+                  <div className="font-bold text-gray-900 text-lg">{testimonial.name}</div>
+                  <div className="text-gray-500">{testimonial.role}</div>
+                </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Discover Matches
-              </h3>
-              <p className="text-gray-600">
-                Browse curated matches based on your preferences and investment criteria.
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center p-6 bg-white rounded-2xl shadow-xl transition-transform transform hover:scale-105 duration-300">
-              <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-white text-blue-600 font-bold mb-8 ring-4 ring-blue-200">
-                <span className="text-5xl">3</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Start Connecting
-              </h3>
-              <p className="text-gray-600">
-                Initiate conversations and build meaningful business relationships.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* About Us Section */}
-      <section id="about" className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="container mx-auto max-w-6xl text-center">
-          <h2 className="text-5xl font-extrabold text-gray-900 leading-tight mb-6">
-            Our Mission
-          </h2>
-          <p className="text-xl text-gray-600 mb-16 max-w-3xl mx-auto">
-            At InvestLink, we believe in the power of innovation. Our mission is to democratize the startup investment ecosystem by creating a trusted, efficient, and intelligent platform where groundbreaking ideas meet the capital they need to thrive.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-left">
-            <div className="p-10 bg-white rounded-2xl shadow-xl flex flex-col transition-transform transform hover:scale-105 duration-300">
-              <h3 className="text-3xl font-bold text-gray-900 mb-6">Our Story</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Founded by a team of seasoned entrepreneurs and investors, InvestLink was born from a simple idea: to remove the barriers that stand between brilliant startups and the right investors. We've built a platform that's not just a directory, but a dynamic community where connections are made, partnerships are forged, and visions become reality.
+      <section id="about-us" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">About Us</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Our mission to revolutionize startup funding
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Story</h3>
+              <p className="text-gray-600 mb-6 text-lg">
+                Founded in 2023, InvestLink was created to bridge the gap between innovative startups and visionary investors. 
+                We saw the challenges both sides faced in finding the right matches and built a platform to solve this problem.
               </p>
             </div>
-
-            <div className="p-10 bg-white rounded-2xl shadow-xl flex flex-col transition-transform transform hover:scale-105 duration-300">
-              <h3 className="text-3xl font-bold text-gray-900 mb-6">Our Values</h3>
-              <ul className="text-gray-600 space-y-6 list-none p-0 mt-2">
-                <li className="flex items-center">
-                  <span className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-blue-100 text-blue-500 rounded-full text-2xl mr-4">🚀</span>
-                  <div>
-                    <span className="font-semibold text-gray-900">Innovation:</span> We support and champion disruptive ideas.
-                  </div>
-                </li>
-                <li className="flex items-center">
-                  <span className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-blue-100 text-blue-500 rounded-full text-2xl mr-4">🤝</span>
-                  <div>
-                    <span className="font-semibold text-gray-900">Trust:</span> We ensure a secure and transparent environment for all users.
-                  </div>
-                </li>
-                <li className="flex items-center">
-                  <span className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-blue-100 text-blue-500 rounded-full text-2xl mr-4">🌐</span>
-                  <div>
-                    <span className="font-semibold text-gray-900">Community:</span> We foster a global network of collaboration and growth.
-                  </div>
-                </li>
-              </ul>
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Team</h3>
+              <p className="text-gray-600 mb-6 text-lg">
+                With decades of combined experience in venture capital and startup development, 
+                our team understands what makes successful investment relationships work.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
+      {/* CTA Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-blue-600 text-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl font-bold mb-6">Ready to Get Started?</h2>
+          <p className="text-blue-100 text-xl mb-10 max-w-2xl mx-auto">
+            Join our platform today and connect with the perfect investment matches
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <button
+              onClick={() => handlePortalEntry('investor')}
+              className="px-8 py-4 bg-white text-blue-600 hover:bg-gray-100 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all text-lg"
+            >
+              Investor Sign Up
+            </button>
+            <button
+              onClick={() => handlePortalEntry('startup')}
+              className="px-8 py-4 border-2 border-white text-white hover:bg-blue-700 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all text-lg"
+            >
+              Startup Sign Up
+            </button>
+          </div>
+        </div>
+      </section>
 
       {/* Footer Section */}
-      <footer className="bg-gray-900 text-gray-300 py-10 px-4 sm:px-6 lg:px-8 text-center">
-        <div className="container mx-auto">
-          <div className="flex items-center justify-center mb-4">
-            <div
-            className="w-[40px] h-[40px] flex-shrink-0 mr-2 rounded-[8px] overflow-hidden"
-            >
-              <Image
-              src="/invest link.png" // Corrected image path: use hyphen instead of space
-              alt="InvestLink Logo"
-              width={40} // Adjusted width for consistency with div
-              height={40} // Adjusted height for consistency with div
-              className="mr-2 rounded-[8px] object-contain flex-shrink-0"
-              priority
-              />
+      <footer className="bg-gray-900 text-gray-300 py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div>
+              <div className="flex items-center mb-6">
+                <Logo size="md" className="text-white" />
               </div>
-              <span className="text-white font-poppins text-2xl font-semibold">
-                InvestLink
-                </span>
-                </div>
-                <p className="text-sm">
-                  Connecting investors and startups worldwide
-                  </p>
-                  <p className="mt-2 text-xs">&copy; 2024 InvestLink. All rights reserved.</p>
-                  </div>
-                  </footer>
-                    </main>
-                    );
-                  }
+              <p className="text-gray-400 mb-6 text-lg">
+                Connecting the world's best investors with the most innovative startups
+              </p>
+              <div className="flex space-x-4">
+                {['Twitter', 'LinkedIn', 'Facebook'].map((social) => (
+                  <a 
+                    key={social} 
+                    href="#" 
+                    className="text-gray-400 hover:text-white transition-colors text-lg"
+                  >
+                    {social}
+                  </a>
+                ))}
+              </div>
+            </div>
+            
+            {[
+              {
+                title: "Company",
+                links: ["About", "Careers", "Blog"]
+              },
+              {
+                title: "Resources",
+                links: ["Help Center", "Community", "Guides"]
+              },
+              {
+                title: "Legal",
+                links: ["Privacy", "Terms", "Cookies"]
+              }
+            ].map((column, index) => (
+              <div key={index}>
+                <h3 className="text-white font-semibold text-lg uppercase tracking-wider mb-6">{column.title}</h3>
+                <ul className="space-y-3">
+                  {column.links.map((link, linkIndex) => (
+                    <li key={linkIndex}>
+                      <a 
+                        href="#" 
+                        className="text-gray-400 hover:text-white transition-colors text-lg"
+                      >
+                        {link}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-lg text-gray-500">
+            <p>&copy; {new Date().getFullYear()} InvestLink. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </main>
+  );
+}

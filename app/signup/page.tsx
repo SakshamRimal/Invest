@@ -2,12 +2,10 @@
 "use client";
 
 import React, { useState } from "react";
-// Image and Link are no longer directly used for the logo in the header,
-// but Link might be used elsewhere (like "Sign in" at the bottom).
-// Keep Image if you plan to use it for other purposes on this page.
-import Image from "next/image"; // Keep this if you use Image component elsewhere
+import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from 'next/navigation'; // For redirection
+import { useRouter } from 'next/navigation';
+import Logo from "../components/Logo";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -42,11 +40,31 @@ export default function SignupPage() {
     e.preventDefault();
     setMessage(''); // Clear previous messages
 
-    // Use email as username for backend
+    // Prepare data based on signup type
     const dataToSend = {
       username: formData.email,
       password: formData.password,
+      email: formData.email,
     };
+
+    // Add role-specific fields
+    if (signupType === 'investor') {
+      Object.assign(dataToSend, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        investmentFirm: formData.investmentFirm,
+        investmentRange: formData.investmentRange,
+        preferredSectors: formData.preferredSectors,
+      });
+    } else {
+      Object.assign(dataToSend, {
+        founderName: formData.founderName,
+        startupName: formData.startupName,
+        industrySector: formData.industrySector,
+        fundingStage: formData.fundingStage,
+        companyDescription: formData.companyDescription,
+      });
+    }
 
     // Choose endpoint based on signupType
     const endpoint = signupType === 'investor'
@@ -78,7 +96,10 @@ export default function SignupPage() {
 
   return (
     <main className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
-      {/* The header with the logo and "InvestLink" text has been removed from here */}
+      {/* Logo at the top */}
+      <div className="mb-8">
+        <Logo size="lg" />
+      </div>
 
       {/* Main Signup Form Card */}
       <div className="bg-white text-gray-900 rounded-2xl shadow-2xl p-8 sm:p-12 w-full max-w-2xl mx-auto my-8">
