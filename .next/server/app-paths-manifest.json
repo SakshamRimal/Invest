@@ -1,0 +1,9 @@
+{
+  "/page": "app/page.js",
+  "/network/page": "app/network/page.js",
+  "/targeting/page": "app/targeting/page.js",
+  "/matching/page": "app/matching/page.js",
+  "/login/page": "app/login/page.js",
+  "/investor/dashboard/page": "app/investor/dashboard/page.js",
+  "/startup/dashboard/page": "app/startup/dashboard/page.js"
+}
